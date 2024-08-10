@@ -7,6 +7,7 @@ name = "pypi"
 pandas = "*"
 xlrd = "*"
 openpyxl = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
