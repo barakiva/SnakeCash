@@ -1,16 +1,6 @@
+import os
 import pandas as pd
 from datetime import datetime
-
-# List of uploaded files
-file_paths = [
-    "reports/Export_3_2024.xls",
-    "reports/Export_5_2024.xls",
-    "reports/Export_4_2024.xls",
-    "reports/Export_6_2024.xls",
-    "reports/Export_7_2024.xls",
-    "reports/Export_8_2024.xls",
-]
-
 # New column names (assuming you have 10 columns)
 new_column_names = [
     "Date",
@@ -22,6 +12,31 @@ new_column_names = [
     "Transaction ID",
     "Notes",
 ]
+vendor_names = [{"name": "suidan", "hebrew_name": "סואידו סיטונאי"}]
+
+
+vendors = [
+    'פרשמרקט בע"מ',
+    "מחסני מ",
+    "סואידו סיטונאי",
+    "PM:AM העצמאות חיפה",
+    "אטליז סלום פינת הבשר",
+    'אחים מרסל מרקט בע"מ',
+    'טחנות קמח שטיבל ב"ש',
+    'סופרמרקט אירופה בע"מ',
+    "וילג מרקט",
+]
+
+
+def sum_for_vendors(df, vendors_list, value_column, vendor_column):
+    # Filter the DataFrame to include only the rows where the vendor is in the vendors_list
+    filtered_df = df[df[vendor_column].isin(vendors_list)]
+
+    # Sum the values in the specified value_column
+    total_sum = filtered_df[value_column].sum()
+
+    return total_sum
+
 
 # Initialize a dictionary to store dataframes with sheet names
 dfs = {}
@@ -36,31 +51,33 @@ def monthly_spend_by_vendor(vendor, df):
 
 
 # Iterate through each file and load it into a dictionary
-for file_path in file_paths:
-    # Extract month from the file name for sheet name
-    # Load the Excel file
-    df = pd.read_excel(file_path, sheet_name=0)
-    # Remove the first 5 rows
-    df = df.iloc[5:]
-    # Rename the columns to new_column_names
-    df.columns = new_column_names
-    cell_date = df.iloc[1]["Date"]
-    date = datetime.strptime(cell_date, "%d/%m/%Y")
-    month_name = date.strftime("%B")
-    print(f"Processing file: {file_path} for month: {month_name}")
-    spend = monthly_spend_by_vendor('סואידו סיטונאי', df)
-    print(spend)
-    # Store the dataframe with the corresponding sheet name
-    dfs[month_name] = df
+folder_path = "reports"
+
+for file in os.listdir('reports'):
+    file_path = os.path.join(folder_path, file)
+    if os.path.isfile(file_path) and file_path.endswith(".xls"):
+        df = pd.read_excel(file_path, sheet_name=0)
+        # Clean
+        df = df.iloc[5:]
+        df.columns = new_column_names
+        # Find date
+        cell_date = df.iloc[1]["Date"]
+        date = datetime.strptime(cell_date, "%d/%m/%Y")
+        month_name = date.strftime("%B")
+        # print(f"Processing file: {file_path} for month: {month_name}")
+        spend = sum_for_vendors(df, vendors, "Amount", "Vendor Name")
+        print(f'Food spend for {month_name} is: {spend}')
+        # Store the dataframe with the corresponding sheet name
+        dfs[month_name] = df
 
 
 # Create a new Excel file with all the sheets
-with pd.ExcelWriter("reports/combined_months.xlsx") as writer:
+with pd.ExcelWriter("out/combined_months.xlsx", engine='openpyxl') as writer:
     for sheet_name, df in dfs.items():
         df.to_excel(writer, sheet_name=sheet_name, index=False)
 
 # Convert the combined Excel file to CSV
-combined_csv_path = "reports/combined_months.csv"
+combined_csv_path = "out/combined_months.csv"
 combined_df = pd.concat(dfs.values(), ignore_index=True)
 combined_df.to_csv(combined_csv_path, index=False)
 
