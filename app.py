@@ -1,5 +1,5 @@
 import pandas as pd
-
+from datetime import datetime
 # List of uploaded files
 file_paths = [
     'reports/Export_3_2024.xls',
@@ -19,15 +19,18 @@ dfs = {}
 # Iterate through each file and load it into a dictionary
 for file_path in file_paths:
     # Extract month from the file name for sheet name
-    sheet_name = file_path.split('/')[-1].split('_')[1].split('.')[0]
     # Load the Excel file
     df = pd.read_excel(file_path, sheet_name=0)
     
     # Rename the columns to new_column_names
     df.columns = new_column_names
-    
+
+    cell_date = df.iloc[7]['Date']
+    date = datetime.strptime(cell_date, "%d/%m/%Y")
+    month_name = date.strftime("%B")
+    print(f"Processing file: {file_path} for month: {month_name}")
     # Store the dataframe with the corresponding sheet name
-    dfs[sheet_name] = df
+    dfs[month_name] = df
 
 # Create a new Excel file with all the sheets
 with pd.ExcelWriter('reports/combined_months.xlsx') as writer:
