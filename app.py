@@ -1,20 +1,39 @@
 import pandas as pd
 from datetime import datetime
+
 # List of uploaded files
 file_paths = [
-    'reports/Export_3_2024.xls',
-    'reports/Export_5_2024.xls',
-    'reports/Export_4_2024.xls',
-    'reports/Export_6_2024.xls',
-    'reports/Export_7_2024.xls',
-    'reports/Export_8_2024.xls'
+    "reports/Export_3_2024.xls",
+    "reports/Export_5_2024.xls",
+    "reports/Export_4_2024.xls",
+    "reports/Export_6_2024.xls",
+    "reports/Export_7_2024.xls",
+    "reports/Export_8_2024.xls",
 ]
 
 # New column names (assuming you have 10 columns)
-new_column_names = ['Date', 'Vendor Name', 'Amount', 'Currency', 'Amount (Charged)', 'Currency (Charged)', 'Transaction ID', 'Notes']
+new_column_names = [
+    "Date",
+    "Vendor Name",
+    "Amount",
+    "Currency",
+    "Amount (Charged)",
+    "Currency (Charged)",
+    "Transaction ID",
+    "Notes",
+]
 
 # Initialize a dictionary to store dataframes with sheet names
 dfs = {}
+
+
+def monthly_spend_by_vendor(vendor, df):
+    # Group by 'Vendor Name' and sum the 'Amount' column
+    monthly_spend = df[df["Vendor Name"] == vendor]["Amount"].sum()
+    # Truncate to 2 significant figures
+    monthly_spend = round(monthly_spend, 2)
+    return monthly_spend
+
 
 # Iterate through each file and load it into a dictionary
 for file_path in file_paths:
@@ -25,21 +44,23 @@ for file_path in file_paths:
     df = df.iloc[5:]
     # Rename the columns to new_column_names
     df.columns = new_column_names
-
-    cell_date = df.iloc[7]['Date']
+    cell_date = df.iloc[1]["Date"]
     date = datetime.strptime(cell_date, "%d/%m/%Y")
     month_name = date.strftime("%B")
     print(f"Processing file: {file_path} for month: {month_name}")
+    spend = monthly_spend_by_vendor('סואידו סיטונאי', df)
+    print(spend)
     # Store the dataframe with the corresponding sheet name
     dfs[month_name] = df
 
+
 # Create a new Excel file with all the sheets
-with pd.ExcelWriter('reports/combined_months.xlsx') as writer:
+with pd.ExcelWriter("reports/combined_months.xlsx") as writer:
     for sheet_name, df in dfs.items():
         df.to_excel(writer, sheet_name=sheet_name, index=False)
 
 # Convert the combined Excel file to CSV
-combined_csv_path = 'reports/combined_months.csv'
+combined_csv_path = "reports/combined_months.csv"
 combined_df = pd.concat(dfs.values(), ignore_index=True)
 combined_df.to_csv(combined_csv_path, index=False)
 
