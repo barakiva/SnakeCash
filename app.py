@@ -21,7 +21,8 @@ for file_path in file_paths:
     # Extract month from the file name for sheet name
     # Load the Excel file
     df = pd.read_excel(file_path, sheet_name=0)
-    
+    # Remove the first 5 rows
+    df = df.iloc[5:]
     # Rename the columns to new_column_names
     df.columns = new_column_names
 
