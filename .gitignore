@@ -1,4 +1,4 @@
-/reports/*.xlsx
+/reports/*.xls
 /out/*.csv
 /out/*.xlsx
 *.xlsx
