@@ -1,4 +1,6 @@
-/reports
+/reports/*.xlsx
+/out/*.csv
+/out/*.xlsx
 *.xlsx
 *.csv
 .env
